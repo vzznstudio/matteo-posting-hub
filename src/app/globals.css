@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #000000;
+  --color-surface: #0c0c0c;
+  --color-elev: #141414;
+  --color-elev2: #1c1c1c;
+  --color-line: #262626;
+  --color-line-strong: #363636;
+  --color-ink: #f5f5f5;
+  --color-muted: #a8a8a8;
+  --color-faint: #8a8a8a;
+  --color-accent: #0095f6;
+  --color-accent-hover: #1aa1ff;
+  --color-danger: #ed4956;
+  --color-ok: #58c322;
+  --color-warn: #f5a524;
+
+  --font-display: var(--font-editorial), "Times New Roman", serif;
+  --font-sans: var(--font-xenon), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  color-scheme: dark;
+  --ring-ig: conic-gradient(from 210deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5, #feda75);
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-accent) 45%, transparent);
+  color: #fff;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2e2e2e transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+input,
+textarea,
+select {
+  caret-color: var(--color-accent);
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.field {
+  width: 100%;
+  background: var(--color-elev);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  padding: 11px 14px;
+  color: var(--color-ink);
+  transition: border-color 0.2s var(--ease-out-expo), background 0.2s;
+}
+.field::placeholder {
+  color: var(--color-faint);
+}
+.field:hover {
+  border-color: var(--color-line-strong);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--color-muted);
+  background: var(--color-elev2);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

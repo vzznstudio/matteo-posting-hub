@@ -1,0 +1,116 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// One connected channel, pulled from Postiz (IG/FB/YT) or Postforme (TikTok).
+model Account {
+  id           String         @id @default(cuid())
+  provider     String // "postiz" | "postforme"
+  externalId   String         @unique
+  platform     String // "instagram" | "facebook" | "youtube" | "tiktok"
+  name         String
+  handle       String?
+  avatar       String?
+  status       String         @default("connected") // connected | disconnected
+  lastSyncedAt DateTime       @default(now())
+  groups       GroupAccount[]
+  targets      PostTarget[]
+}
+
+model Group {
+  id        String         @id @default(cuid())
+  name      String
+  position  Int            @default(0)
+  createdAt DateTime       @default(now())
+  accounts  GroupAccount[]
+  posts     Post[]
+}
+
+model GroupAccount {
+  groupId   String
+  accountId String
+  position  Int     @default(0)
+  group     Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, accountId])
+}
+
+model Media {
+  id           String      @id @default(cuid())
+  fileName     String // name on disk
+  originalName String
+  mime         String
+  size         BigInt
+  width        Int?
+  height       Int?
+  duration     Float?
+  createdAt    DateTime    @default(now())
+  trashedAt    DateTime?
+  /// Cached Postiz upload so re-scheduling does not re-upload
+  postizId     String?
+  postizPath   String?
+  posts        PostMedia[]
+
+  @@index([trashedAt])
+}
+
+model Post {
+  id          String       @id @default(cuid())
+  groupId     String?
+  format      String // "reel" | "carousel"
+  caption     String       @default("")
+  title       String       @default("") // YouTube title
+  music       Json? // Instagram audio {id,title,artist,image}
+  scheduledAt DateTime?
+  enabled     Boolean      @default(true)
+  status      String       @default("draft") // draft | scheduled | published | partial | failed
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  group       Group?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  media       PostMedia[]
+  targets     PostTarget[]
+
+  @@index([scheduledAt])
+}
+
+model PostMedia {
+  postId   String
+  mediaId  String
+  position Int
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  media    Media  @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([postId, mediaId])
+}
+
+model PostTarget {
+  id         String  @id @default(cuid())
+  postId     String
+  accountId  String
+  enabled    Boolean @default(true)
+  remoteId   String? // Postiz post id or Postforme social-post id
+  status     String  @default("pending") // pending | scheduled | published | failed | skipped
+  error      String?
+  url        String?
+  post       Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  account    Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, accountId])
+}
+
+model Settings {
+  id                Int    @id @default(1)
+  autoTrashDays     Int    @default(30) // 0 = never auto-trash
+  purgeDays         Int    @default(7)
+  youtubePrivacy    String @default("public")
+  tiktokPrivacy     String @default("public")
+  defaultPostTime   String @default("18:00")
+  timezone          String @default("Europe/Rome")
+}
